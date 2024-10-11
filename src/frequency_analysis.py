@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.fft import fft
+import pandas as pd
+
 
 #determines EEG wave type by frequency (Hz)
 def classify_wave_type(freq):
@@ -21,15 +23,27 @@ def classify_wave_type(freq):
 #returns each channel's dominant frequency   
 
 def freq_analysis(eeg_data, sample_rate):
-    #empty list to store data per channel
-    fft_results = []
-    for channel in eeg_data:
-        N = len(channel) #N= number of samples
-        yf = fft(channel) #stores fft results for current channel, converting time-domain signal into freq domain
-        xf = np.fft.fftfreq(N, 1/sample_rate) #computes freq values using sample rate. 1/samp_rate reps time int btwn samples
-        #find dominant freq
-        idx = np.argmax(np.abs(yf)) #np.abs computes magnitude of fft output, np.argmax finds index of maximum value -- dominant freq
-        freq = np.abs(xf[idx]) #extracts dom freq from xf
+
+    dominant_freqs = {}
+
+    for channel_name in eeg_data.columns:
+        channel = eeg_data[channel_name].dropna().astype(float).values
+
+        if len(channel) == 0:
+            print(f"Channel {channel_name} has no valid data")
+            continue
+
+        N = len(channel)
+        yf = fft(channel)
+        xf = np.fft.fftfreq(N, 1/sample_rate)
+
+        #find dom freq
+        idx = np.argmax(np.abs(yf))
+        freq = np.abs(xf[idx])
         wave_type = classify_wave_type(freq)
-        fft_results.append((freq, wave_type)) #appends tuple of dominant frequency and wave type to results
-    return fft_results
+
+        dominant_freqs[channel_name] = (freq, wave_type)
+
+
+    return dominant_freqs
+    

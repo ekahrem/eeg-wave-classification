@@ -1,6 +1,24 @@
 import pandas as pd
 
-def read_csv_eeg(file_path):
-    return pd.read_csv(file_path)
+def load_csv_eeg(file_path):
 
-# Usage: data = read_csv_eeg('data/eeg-music.csv')
+    #load file in
+    df = pd.read_csv(file_path)
+
+    #extract time
+    time = df['Time']
+
+    #drop and seperate time
+    eeg_data = df.drop(columns='Time')
+
+
+    #calc sample rate
+    time_diff = time.diff().dropna().mean() #avg time int
+    sample_rate = 1 / time_diff # rate in Hz
+
+    print(f"Sample rate: {sample_rate:.2f} Hz")
+
+    return eeg_data, sample_rate, time
+
+
+    
